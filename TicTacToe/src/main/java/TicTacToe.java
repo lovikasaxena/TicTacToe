@@ -1,9 +1,9 @@
 public class TicTacToe {
-    Player player1;
-    Player player2;
-    Player presentPlayer;
-    Board board;
-    int numberOfChancesPlayed;
+    private Player player1;
+    private Player player2;
+    private Player presentPlayer;
+    private Board board;
+    private int numberOfChancesPlayed;
 
     public TicTacToe(Player player1, Player player2, Board board) {
         this.player1 = player1;
@@ -13,17 +13,13 @@ public class TicTacToe {
         numberOfChancesPlayed = 0;
     }
 
-    public String play() {
+    public String play() throws WrongInputException{
         do {
-            this.board.displayBoard();
-            Coordinates turnCoordinates = presentPlayer.takeTurn();
-            if (this.board.isCoordinateTaken(turnCoordinates)) {
-                continue;
-            }
-            this.board.setCoordinatesMarked(turnCoordinates, presentPlayer);
+            board.displayBoard();
+            board.setCoordinatesMarked(presentPlayer.takeTurn(), presentPlayer);
             numberOfChancesPlayed++;
             if (numberOfChancesPlayed > 4 && board.hasPlayerWon(presentPlayer)) {
-                this.board.displayBoard();
+                board.displayBoard();
                 return presentPlayer.win();
             }
             presentPlayer = changePlayer(presentPlayer);

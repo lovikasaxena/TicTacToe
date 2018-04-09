@@ -1,75 +1,85 @@
+/***
+ * Understands a board where 2 players can play the game of Tic Tac Toe.
+ */
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Board {
-    HashMap<Coordinates, Player> matrix;
+     HashMap<Coordinates, Player> matrix;
+    private int sizeOfBoard;
+    private WinConditions winConditions;
 
-    public Board() {
+    public Board(int sizeOfBoard) {
+        this.sizeOfBoard = sizeOfBoard;
         matrix = new HashMap<>();
+        initializeBoardCellsUsingMap(sizeOfBoard);
+    }
+
+    private void initializeBoardCellsUsingMap(int sizeOfBoard) {
         Player temporaryPlayer = new Player('.');
-        for (int i = 1; i <= 3; i++) {
-            for (int j = 1; j <= 3; j++) {
+        for (int i = 1; i <= sizeOfBoard; i++) {
+            for (int j = 1; j <= sizeOfBoard; j++) {
                 matrix.put(new Coordinates(i, j), temporaryPlayer);
             }
         }
     }
 
-    public void setCoordinatesMarked(Coordinates turnCoordinates, Player player) {
+    void setCoordinatesMarked(Coordinates turnCoordinates, Player player) throws WrongInputException {
+        if (!validateCoordinates(turnCoordinates)) {
+            throw new WrongInputException("Wrong Input from user!");
+        }
         matrix.put(turnCoordinates, player);
     }
 
-    public boolean isCoordinateTaken(Coordinates turnCoordinates) {
-        return matrix.get(turnCoordinates).playerName == '.' ? false : true;
+     boolean validateCoordinates(Coordinates turnCoordinates) {
+        if (turnCoordinates.x > sizeOfBoard || turnCoordinates.y > sizeOfBoard) {
+            return false;
+        }
+        return this.coordinatesNotAlreadyMarked(turnCoordinates);
     }
 
-    Boolean hasPlayerWon(Player player) {
-        if (checkHorizontalAndVerticalLineWin(player)) return true;
-        if (checkCrossLinesWin(player)) return true;
+     boolean coordinatesNotAlreadyMarked(Coordinates turnCoordinates) {
+        return matrix.get(turnCoordinates).playerName == '.' ? true : false;
+    }
+
+    boolean hasPlayerWon(Player player) {
+        if (checkForWin(player, LineType.HORIZONTAL)) return true;
+        if (checkForWin(player, LineType.VERTICAL)) return true;
+        if (checkForWin(player, LineType.DIAGONAL)) return true;
         return false;
     }
 
-    private boolean checkCrossLinesWin(Player player) {
-        int countCrossLine1 = 0;
-        for (int i = 1; i <= 3; i++) {
-            if (matrix.get(new Coordinates(i, i)).playerName == (player.playerName)) {
-                countCrossLine1++;
+    private boolean checkForWin(Player player, LineType lineType) {
+        winConditions = new WinConditions();
+        ArrayList<Line> lines = winConditions.getWinningLines(lineType, sizeOfBoard);
+        for (Line line : lines) {
+            ArrayList<Coordinates> listOfCoordinates = line.listOfCoordinates;
+            if (fullLineMarkedBySamePlayer(player, listOfCoordinates)) return true;
+        }
+        return false;
+    }
+
+    private boolean fullLineMarkedBySamePlayer(Player player, ArrayList<Coordinates> listOfCoordinates) {
+        int count = 0;
+        for (Coordinates coordinates : listOfCoordinates) {
+            if (matrix.get(coordinates).playerName == player.playerName) {
+                count++;
             }
         }
-        if (countCrossLine1 == 3 ||
-                (matrix.get(new Coordinates(1,3)).playerName == (player.playerName) &&
-                matrix.get(new Coordinates(2,2)).playerName == (player.playerName) &&
-                matrix.get(new Coordinates(3,1)).playerName == (player.playerName))) {
+        if (count == sizeOfBoard) {
             return true;
         }
         return false;
     }
 
-    private boolean checkHorizontalAndVerticalLineWin(Player player) {
-        int countHorizontalLine = 0, countVerticalLine = 0;
-        for (int i = 1; i <= 3; i++) {
-            countHorizontalLine = countVerticalLine = 0;
-            for (int j = 1; j <= 3; j++) {
-                if (matrix.get(new Coordinates(i, j)).playerName == (player.playerName)) {
-                    countHorizontalLine++;
-                }
-                if (matrix.get(new Coordinates(j, i)).playerName == (player.playerName)) {
-                    countVerticalLine++;
-                }
-            }
-            if (countHorizontalLine == 3 || countVerticalLine == 3) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     void displayBoard() {
-        for (int i = 1; i <= 3; i++) {
-            for (int j = 1; j <= 3; j++) {
-                System.out.print(matrix.get(new Coordinates(i, j)).playerName + "\t");
+        for (int i = 1; i <= sizeOfBoard; i++) {
+            for (int j = 1; j <= sizeOfBoard; j++) {
+                System.out.print(matrix.get(new Coordinates(j, i)).playerName + "\t");
             }
             System.out.println("\n");
         }
     }
-
 }
+
